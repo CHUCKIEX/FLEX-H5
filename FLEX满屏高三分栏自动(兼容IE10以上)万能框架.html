@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>用户分析</title>
+    <script>
+        //rem自动计算
+        (function (designWidth, maxWidth, viewWidth) {
+            var doc = document,
+                win = window,
+                docEl = doc.documentElement,
+                remStyle = document.createElement("style"),
+                tid;
+
+            function refreshRem() {
+                var width = docEl.getBoundingClientRect().width;
+                maxWidth = maxWidth || 540;
+                width > maxWidth && (width = maxWidth);
+                var rem = width * 100 / designWidth;
+
+                if (viewWidth == null || viewWidth < maxWidth) {
+                    remStyle.innerHTML = 'html{font-size:' + rem + 'px;}';
+                } else {
+                    remStyle.innerHTML = 'html{font-size:' + rem + 'px; max-width:' + viewWidth + 'px; margin: auto}';
+                }
+            }
+
+            if (docEl.firstElementChild) {
+                docEl.firstElementChild.appendChild(remStyle);
+            } else {
+                var wrap = doc.createElement("div");
+                wrap.appendChild(remStyle);
+                doc.write(wrap.innerHTML);
+                wrap = null;
+            }
+            refreshRem();
+
+            win.addEventListener("resize", function () {
+                clearTimeout(tid);
+                tid = setTimeout(refreshRem, 300);
+            }, false);
+
+            win.addEventListener("pageshow", function (e) {
+                if (e.persisted) {
+                    clearTimeout(tid);
+                    tid = setTimeout(refreshRem, 300);
+                }
+            }, false);
+
+            if (doc.readyState === "complete") {
+                doc.body.style.fontSize = "16px";
+            } else {
+                doc.addEventListener("DOMContentLoaded", function (e) {
+                    doc.body.style.fontSize = "16px";
+
+                }, false);
+            }
+        })(1920, 1920);
+
+    </script>
+
+    <style>
+        * {
+        margin: 0;
+        padding: 0;
+        outline: 0;
+        font-family: "微软雅黑", -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+        [v-cloak] {
+        display: none;
+        }
+        html {
+        -ms-text-size-adjust: 100%;
+        -webkit-text-size-adjust: 100%;
+        height: 100%;
+        }
+        body {
+        height: 100%;
+        display: -webkit-box;
+        display: -ms-flexbox;
+        display: flex;
+        -webkit-box-orient: vertical;
+        -webkit-box-direction: normal;
+        -ms-flex-flow: column;
+        flex-flow: column;
+        -ms-flex-wrap: nowrap;
+        flex-wrap: nowrap;
+        position: relative;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        background-color: #2c2c9b;
+        overflow: hidden;
+        }
+        .page-head {
+        -webkit-box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+        position: relative;
+        z-index: 1;
+        }
+        .page-head .head-top {
+        height: .56rem;
+        background-color: #00a4af;
+        }
+        .page-head .head-nav {
+        height: .68rem;
+        background-color: white;
+        }
+        .page-body {
+        background-color: #f1f4f6;
+        display: -webkit-box;
+        display: -ms-flexbox;
+        display: flex;
+        -webkit-box-flex: 1;
+        -ms-flex-positive: 1;
+        -ms-flex: 1;
+        flex: 1;
+        }
+        .page-body .body-side {
+        width: 2.3rem;
+        padding: .1rem .3rem;
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
+        overflow-y: auto;
+        }
+        .page-body .body-side .item {
+        padding: .2rem 0 .1rem 0;
+        position: relative;
+        }
+        .page-body .body-side .item:last-child::after {
+        display: none;
+        }
+        .page-body .body-side .item::after {
+        content: '';
+        display: block;
+        position: absolute;
+        left: .37rem;
+        right: 0;
+        bottom: 0;
+        height: 1px;
+        background-color: #e4e8eb;
+        }
+        .page-body .body-side .item .item-name {
+        font-size: .2rem;
+        display: -webkit-box;
+        display: -ms-flexbox;
+        display: flex;
+        -webkit-box-align: center;
+        -ms-flex-align: center;
+        align-items: center;
+        }
+        .page-body .body-side .item .item-name::before {
+        content: '';
+        display: block;
+        width: .2rem;
+        height: .2rem;
+        margin-right: .15rem;
+        background: transparent no-repeat center / contain;
+        }
+        .page-body .body-side .item .item-name.user::before {
+        background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAMAAADzapwJAAAAY1BMVEUAAACampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampphh5GsAAAAIHRSTlMA+gkr89a5VEXv6uWDe3Fl29LLwKBdPTcjFsWvl0oiEuFDyqYAAACfSURBVBjTXdBZFoMgDAVQQRAVsM5Dx+x/laUpkeD74XBPGJIiRnot1PyhLekdMI+cHcTcMm6JR647nJGM68QlY5O4ZtwlXhhvibeCZSKtCh7DrubxrBse9VN71QOLlcy1HADaNrzIunm7EStlExbt9r8uAjCvOAJhkHuaKfWqkQUNaYVYjnxuZMY9VZfx3IR8GD9Xg1VNI6yunt0aPv8F1WYaafw/faIAAAAASUVORK5CYII=');
+        }
+        .page-body .body-side .item .item-name.shop::before {
+        background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAMAAADzapwJAAAAXVBMVEUAAACampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqc/FqnAAAAHnRSTlMA+6wLafXY0Bfm4aGCdPDUkGBEOijEv7CeYlAwIAdV6CytAAAAjklEQVQY063OyRLCIBRE0ZBHGIJkMHHW/v/PtAW1rJCNVbkrOPSC6u9ih5+aXdYJi/aJ9ZLzfABs/aHaAufEJC0qqxINHBNbbvjG3oc2ccfR7AyYcbPi7UEVsN6JDkGL68Hu5Bte+VG4GP33h1fklDEKuQs5AmsfH0oO5FPJB7It2ZMblK1zS45NoVO1SU+/Gh9ZH+MYcQAAAABJRU5ErkJggg==');
+        }
+        .page-body .body-side .item .item-name.sns::before {
+        background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAWBAMAAAA2mnEIAAAAGFBMVEUAAACampqampqampqampqampqampqampquFfEpAAAAB3RSTlMAwaC8phwQjmYlFgAAAEVJREFUGNNjwAlYzctBoDgAyGYuhwADIJsdyi7Ay3ZSUnKHsRMYGNJhbEFBQXFCegVBAKGXgQ1hppIKfr0INsLNKH7BBQA1/Th1fNg0BAAAAABJRU5ErkJggg==');
+        }
+        .page-body .body-side .item .item-name.car::before {
+        background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAMAAADzapwJAAAAV1BMVEUAAACampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampr7x9zNAAAAHHRSTlMA8ECiE/bLV9iQhHNdMQfQ3sbFtqxRQwvpsmYahRrySgAAAItJREFUGNOtzckWgyAMhWEjILM42yHv/5wNaT1HqEv/Xb7FTXNX0eApE388YdH0VYlVkjnUHJhFzYJ5rnnmablH7Z0VlHVex13mcYdmsT6sW9tua/B2MeiIO/yry5yGEodETPVwVugZARQWKQBivOjgUbecHg9W+TXv8Z9EZx55gRKSiXs/1UM3t/QB40AX+0ftANYAAAAASUVORK5CYII=');
+        }
+        .page-body .body-side .item .item-name.charge::before {
+        background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAMAAADzapwJAAAAPFBMVEUAAACampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampo1WUNFAAAAE3RSTlMAMJCx0HH38aKL6+UjE9u8fk5LcVUTZwAAAGZJREFUGNO1zksOgCAMRVGEFsrPX/e/VyHpwBqIA+OdQM7gpaZHfIuMVFhVhBfNyysHJwXFYCRQnKyUJtv/sIcho9m95hAJtv4DxZzP9trVHvYxQrX2CR80c3Yf7kaMmiNiYx404wvVmBR3x8/brQAAAABJRU5ErkJggg==');
+        }
+        .page-body .body-side .item .item-box {
+        display: -webkit-box;
+        display: -ms-flexbox;
+        display: flex;
+        -webkit-box-orient: vertical;
+        -webkit-box-direction: normal;
+        -ms-flex-direction: column;
+        flex-direction: column;
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
+        padding: .08rem 0;
+        padding-left: .37rem;
+        }
+        .page-body .body-side .item .item-box .item-subnav {
+        display: block;
+        font-size: .14rem;
+        padding: .08rem 0;
+        color: #333;
+        text-decoration: none;
+        }
+        .page-body .body-side .item .item-box .item-subnav.active {
+        color: #00a4af;
+        }
+        .page-body .body-side .item .item-box .item-subnav:hover {
+        color: #00a4af;
+        }
+        .page-body .body-main {
+        -webkit-box-flex: 1;
+        -ms-flex: 1;
+        flex: 1;
+        overflow-y: auto;
+        }
+        .box {
+        background-color: white;
+        margin: .3rem;
+        border-radius: .08rem;
+        -webkit-box-shadow: 3px 3px 7px rgba(0, 0, 0, 0.1);
+        box-shadow: 3px 3px 7px rgba(0, 0, 0, 0.1);
+        }
+        .box .box-head {
+        border-bottom: 1px solid #f2f4f3;
+        padding: 0 .3rem;
+        display: -webkit-box;
+        display: -ms-flexbox;
+        display: flex;
+        -webkit-box-pack: justify;
+        -ms-flex-pack: justify;
+        justify-content: space-between;
+        -webkit-box-align: center;
+        -ms-flex-align: center;
+        align-items: center;
+        }
+        .box .box-head .head-main {
+        height: .7rem;
+        display: -webkit-box;
+        display: -ms-flexbox;
+        display: flex;
+        -webkit-box-align: center;
+        -ms-flex-align: center;
+        align-items: center;
+        }
+        .box .box-head .head-main .main-name {
+        font-size: .18rem;
+        }
+        .box .box-head .head-main .main-count {
+        color: #999;
+        margin-left: .3rem;
+        }
+        .box .box-head .head-main .tab-box {
+        padding: .1rem 0;
+        }
+        .box .box-head .head-main .tab-head {
+        display: -webkit-box;
+        display: -ms-flexbox;
+        display: flex;
+        }
+        .box .box-head .head-main .tab-head .tab-nav {
+        background-color: #f1f4f6;
+        height: .3rem;
+        display: -webkit-box;
+        display: -ms-flexbox;
+        display: flex;
+        -webkit-box-align: center;
+        -ms-flex-align: center;
+        align-items: center;
+        margin-right: .3rem;
+        padding: 0 .2rem;
+        border-radius: .15rem;
+        font-size: .14rem;
+        cursor: pointer;
+        }
+        .box .box-head .head-main .tab-head .tab-nav::after {
+        display: none;
+        }
+        .box .box-head .head-main .tab-head .tab-nav:hover {
+        background-color: #e4e8eb;
+        }
+        .box .box-head .head-main .tab-head .tab-nav.active {
+        background-color: #00a4af;
+        color: white;
+        }
+        .box .box-head .head-main .tab-head .tab-datatime {
+        height: .3rem;
+        border: 1px solid #dcdcdc;
+        border-radius: .08rem;
+        padding: 0 .2rem;
+        display: flex;
+        align-items: center;
+        }
+        .box .box-head .head-main .tab-head .tab-datatime::after {
+        content: '';
+        display: block;
+        width: .14rem;
+        height: .14rem;
+        background: transparent no-repeat center / contain;
+        background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAMAAAAolt3jAAAAP1BMVEUAAACysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrLiEBtmAAAAFXRSTlMA7v0c+OTWKxEFzKBzX0o66L67sEBtXCZxAAAASklEQVQI16WMRw7AIBADt7F0SPv/W5MViXJG+GKPbBmmhDl+MWaEQufL4aACUGkPRpyomjdJD3snbaw6Kl+IfZA1mzj/37Mqw6pusfcBf/Dz8RIAAAAASUVORK5CYII=');
+        }
+        .box .box-head .head-main .tab-head .tab-datatime input[type=text] {
+        border: none;
+        height: 100%;
+        width: 2rem;
+        }
+        .box .box-head .head-more {
+        font-size: .14rem;
+        height: .4rem;
+        width: 1.1rem;
+        border-radius: .08rem;
+        background-color: #00a4af;
+        color: white;
+        display: -webkit-box;
+        display: -ms-flexbox;
+        display: flex;
+        -webkit-box-align: center;
+        -ms-flex-align: center;
+        align-items: center;
+        -webkit-box-pack: center;
+        -ms-flex-pack: center;
+        justify-content: center;
+        cursor: pointer;
+        }
+        .box .box-head .head-more:hover {
+        background-color: #008c96;
+        }
+        .general {
+        display: -webkit-box;
+        display: -ms-flexbox;
+        display: flex;
+        }
+        .general .item {
+        -webkit-box-flex: 1;
+        -ms-flex: 1;
+        flex: 1;
+        display: -webkit-box;
+        display: -ms-flexbox;
+        display: flex;
+        -webkit-box-orient: vertical;
+        -webkit-box-direction: normal;
+        -ms-flex-direction: column;
+        flex-direction: column;
+        -webkit-box-align: center;
+        -ms-flex-align: center;
+        align-items: center;
+        padding: .3rem 0;
+        border-right: 1px solid #f2f4f3;
+        }
+        .general .item:last-child {
+        border: none;
+        }
+        .general .item .name {
+        font-size: .18rem;
+        color: #666;
+        margin-bottom: .2rem;
+        }
+        .general .item .value .text {
+        font-size: .42rem;
+        color: #00a4af;
+        display: -webkit-box;
+        display: -ms-flexbox;
+        display: flex;
+        -webkit-box-align: center;
+        -ms-flex-align: center;
+        align-items: center;
+        height: 1rem;
+        }
+        .general .item .value .chart {
+        width: 1rem;
+        height: 1rem;
+        background-color: #e4e8eb;
+        }
+        .tab-box {
+        padding: .3rem;
+        }
+        .tab-box .tab-head {
+        display: -webkit-box;
+        display: -ms-flexbox;
+        display: flex;
+        }
+        .tab-box .tab-head .tab-nav {
+        height: .4rem;
+        display: -webkit-box;
+        display: -ms-flexbox;
+        display: flex;
+        margin-right: .3rem;
+        padding: 0 .2rem;
+        font-size: .18rem;
+        cursor: pointer;
+        position: relative;
+        }
+        .tab-box .tab-head .tab-nav::after {
+        content: '';
+        display: block;
+        height: 2px;
+        width: 50%;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        margin: auto;
+        background-color: transparent;
+        }
+        .tab-box .tab-head .tab-nav.active {
+        color: #00a4af;
+        }
+        .tab-box .tab-head .tab-nav.active::after {
+        background-color: #00a4af;
+        }
+        .echarts {
+        margin: .3rem 0;
+        background-color: #e2fdff;
+        }
+        .echarts:last-child {
+        margin-bottom: 0;
+        }
+
+	</style>
+</head>
+
+<body>
+    <div class="page-head">
+        <div class="head-top">head-top</div>
+        <div class="head-nav">head-nav</div>
+    </div>
+
+    <div class="page-body">
+        <!-- LEFT MENU -->
+        <div class="body-side">
+            <dl class="item">
+                <dt class="item-name user">用户报表</dt>
+                <dd class="item-box">
+                    <a href="" class="item-subnav active">用户分析</a>
+                    <a href="" class="item-subnav">认证车主</a>
+                    <a href="" class="item-subnav">积分分析</a>
+                </dd>
+            </dl>
+
+            <dl class="item">
+                <dt class="item-name shop">商城报表</dt>
+                <dd class="item-box">
+                    <a href="" class="item-subnav">成交分析</a>
+                    <a href="" class="item-subnav">转化分析</a>
+                </dd>
+            </dl>
+
+            <dl class="item">
+                <dt class="item-name sns">社区报表</dt>
+                <dd class="item-box">
+                    <a href="" class="item-subnav">文章分析</a>
+                </dd>
+            </dl>
+
+            <dl class="item">
+                <dt class="item-name car">爱车报表</dt>
+                <dd class="item-box">
+                    <a href="" class="item-subnav">额度测试</a>
+                    <a href="" class="item-subnav">金融计算器</a>
+                    <a href="" class="item-subnav">意向金订单</a>
+                    <a href="" class="item-subnav">定制化配置</a>
+                </dd>
+            </dl>
+
+            <dl class="item">
+                <dt class="item-name charge">充电报表</dt>
+                <dd class="item-box">
+                    <a href="" class="item-subnav">充电分析</a>
+                </dd>
+            </dl>
+
+            <dl class="item">
+                <dt class="item-name charge">充电报表</dt>
+                <dd class="item-box">
+                    <a href="" class="item-subnav">充电分析</a>
+                </dd>
+            </dl>
+        </div>
+
+        <!-- RIGHT MAIN -->
+        <div class="body-main">
+            <div class="box">
+                <div class="box-head">
+                    <div class="head-main">
+                        <div class="main-name">今日用户数据</div>
+                        <div class="main-count">总计：23444</div>
+                    </div>
+                    <div class="head-more">导出</div>
+                </div>
+                <div class="box-body">
+                    <div class="general">
+                        <div class="item">
+                            <div class="name">新增注册数</div>
+                            <div class="value">
+                                <div class="text">1234566</div>
+                            </div>
+                        </div>
+                        <div class="item">
+                            <div class="name">新增注册数</div>
+                            <div class="value">
+                                <div class="text">1234566</div>
+                            </div>
+                        </div>
+                        <div class="item">
+                            <div class="name">新增注册数</div>
+                            <div class="value">
+                                <div class="text">1234566</div>
+                            </div>
+                        </div>
+                        <div class="item">
+                            <div class="name">新增注册数</div>
+                            <div class="value">
+                                <div class="text">1234566</div>
+                            </div>
+                        </div>
+                        <div class="item">
+                            <div class="name">新增注册数</div>
+                            <div class="value">
+                                <div class="text">1234566</div>
+                            </div>
+                        </div>
+                        <div class="item">
+                            <div class="name">新增注册数</div>
+                            <div class="value">
+                                <div class="chart">chart</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="box">
+                <div class="box-head">
+                    <div class="head-main">
+                        <div class="tab-box">
+                            <div class="tab-head">
+                                <div class="tab-nav active">今日</div>
+                                <div class="tab-nav">昨日</div>
+                                <div class="tab-nav">近七日</div>
+                                <div class="tab-nav">近三十日</div>
+                                <div class="tab-datatime">
+                                    <input type="text" id="datatime" placeholder="自定义时间">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="head-more">导出</div>
+                </div>
+                <div class="box-body">
+                    <div class="tab-box">
+                        <div class="tab-head">
+                            <div class="tab-nav active">新增注册数</div>
+                            <div class="tab-nav">新增用户数</div>
+                            <div class="tab-nav">累计用户数</div>
+                        </div>
+                        <div class="tab-body">
+                            <div class="echarts">echarts</div>
+                            <div class="echarts">echarts</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="box">
+                <div class="box-head">
+                    <div class="head-main">
+                        <div class="tab-box">
+                            <div class="tab-head">
+                                <div class="tab-nav active">今日</div>
+                                <div class="tab-nav">昨日</div>
+                                <div class="tab-nav">近七日</div>
+                                <div class="tab-nav">近三十日</div>
+                                <div class="tab-datatime">
+                                    <input type="text" id="datatime" placeholder="自定义时间">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="head-more">导出</div>
+                </div>
+                <div class="box-body">
+                    <div class="tab-box">
+                        <div class="tab-head">
+                            <div class="tab-nav active">新增注册数</div>
+                            <div class="tab-nav">新增用户数</div>
+                            <div class="tab-nav">累计用户数</div>
+                        </div>
+                        <div class="tab-body">
+                            <div class="echarts">echarts</div>
+                            <div class="echarts">echarts</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="page-head">
+        <div class="head-top">head-top</div>
+        <div class="head-nav">head-nav</div>
+    </div>
+</body>
+
+</html>
